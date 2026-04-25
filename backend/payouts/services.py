@@ -6,7 +6,7 @@ from django.db.models import Sum
 from payouts.models import PayoutRequest, IdempotencyRecord, AuditLog
 from ledger.models import LedgerEntry
 from merchants.models import Merchant
-from payouts.tasks import process_payout
+# Removed process_payout from top-level imports to avoid circular import
 
 
 class InsufficientFunds(Exception):
@@ -84,6 +84,7 @@ def create_payout(merchant, amount_paise, bank_account_id, idempotency_key):
         )
         
         # Step 6: Enqueue celery task on commit
+        from payouts.tasks import process_payout
         transaction.on_commit(lambda: process_payout.delay(str(payout.id)))
         
         # Step 7: Return response

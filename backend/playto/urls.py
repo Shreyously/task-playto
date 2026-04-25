@@ -1,1 +1,3 @@
-# Root router
+from django.urls import path
+
+urlpatterns = []

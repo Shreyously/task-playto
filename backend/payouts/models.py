@@ -47,7 +47,7 @@ class AuditLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if self.pk is not None:
+        if not self._state.adding:
             raise NotImplementedError("AuditLog entries are append-only and cannot be updated.")
         super().save(*args, **kwargs)
         

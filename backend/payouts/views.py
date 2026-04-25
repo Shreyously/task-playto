@@ -4,9 +4,10 @@ from rest_framework.exceptions import AuthenticationFailed, ParseError
 from rest_framework import status
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
-from payouts.models import PayoutRequest
+from payouts.models import PayoutRequest,IdempotencyRecord
 from payouts.serializers import PayoutRequestSerializer, PayoutCreateSerializer
 from merchants.models import Merchant
+from django.db import IntegrityError
 from payouts.services import create_payout, InsufficientFunds
 
 class PayoutListCreateView(APIView):
@@ -41,6 +42,20 @@ class PayoutListCreateView(APIView):
                 bank_account_id=serializer.validated_data['bank_account_id'],
                 idempotency_key=idempotency_key
             )
+        except IntegrityError:
+            # two identical requests arrived simultaneously
+            # first one won the DB insert, second gets IntegrityError
+            # fetch and return the stored response
+            idem_record = IdempotencyRecord.objects.filter(
+                merchant=merchant,
+                key=idempotency_key
+            ).first()
+            if idem_record:
+                return Response(idem_record.response_body, status=status.HTTP_200_OK)
+            return Response({"error": "Duplicate request"}, status=status.HTTP_409_CONFLICT)
+        except InsufficientFunds as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
             # Always compute fresh held_balance at DB level
             held_agg = PayoutRequest.objects.filter(
                 merchant=merchant,

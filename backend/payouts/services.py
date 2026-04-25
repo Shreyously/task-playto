@@ -110,3 +110,16 @@ def transition_status(payout, to_status, reason):
             to_status=to_status,
             reason=reason
         )
+
+def simulate_bank_transfer(payout_id, amount_paise):
+    import time
+    import random
+    time.sleep(random.uniform(1, 3))
+    outcome = random.random()
+    if outcome < 0.70: 
+        return "success"
+    elif outcome < 0.90: 
+        return "failed"
+    else:
+        time.sleep(60)
+        return "timeout"

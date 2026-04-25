@@ -56,15 +56,13 @@ class PayoutListCreateView(APIView):
         except InsufficientFunds as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Always compute fresh held_balance at DB level
-            held_agg = PayoutRequest.objects.filter(
-                merchant=merchant,
-                status__in=[PayoutRequest.Status.PENDING, PayoutRequest.Status.PROCESSING]
-            ).aggregate(total=Sum('amount_paise'))
-            response_data['held_balance'] = held_agg['total'] or 0
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        except InsufficientFunds as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # Always compute fresh held_balance at DB level
+        held_agg = PayoutRequest.objects.filter(
+            merchant=merchant,
+            status__in=[PayoutRequest.Status.PENDING, PayoutRequest.Status.PROCESSING]
+        ).aggregate(total=Sum('amount_paise'))
+        response_data['held_balance'] = held_agg['total'] or 0
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 class PayoutDetailView(APIView):
     def get(self, request, pk):

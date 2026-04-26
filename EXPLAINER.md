@@ -1,3 +1,17 @@
+## Question 1 — The Ledger
+
+```python
+        balance_agg = LedgerEntry.objects.filter(merchant=locked_merchant).aggregate(
+            total=Sum('amount_paise')
+        )
+        available_balance = balance_agg['total'] or 0
+```
+
+**Explain:**
+Modeling credits and debits as positive and negative amounts in a single `LedgerEntry` table allows us to calculate the exact current balance using a single, efficient database-level `Sum` aggregation. There is no need to store a mutable balance field (which could fall out of sync) or perform complex arithmetic like `SUM(credits) - SUM(debits)`. This strictly append-only design provides a bulletproof financial audit trail while remaining incredibly fast and reliable.
+
+---
+
 ## Question 2 — The Lock
 
 ```python

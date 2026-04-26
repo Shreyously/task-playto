@@ -14,3 +14,11 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Load task modules from all registered Django apps.
 app.autodiscover_tasks()
+
+# Configure periodic tasks
+app.conf.beat_schedule = {
+    'check-stuck-payouts-every-10-seconds': {
+        'task': 'payouts.tasks.retry_stuck_payouts',
+        'schedule': 10.0,
+    },
+}

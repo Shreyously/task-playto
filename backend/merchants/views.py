@@ -17,3 +17,9 @@ class MerchantMeView(APIView):
             
         serializer = MerchantSerializer(merchant)
         return Response(serializer.data)
+
+class MerchantListView(APIView):
+    def get(self, request):
+        merchants = Merchant.objects.all().order_by('name')
+        data = [{"id": str(m.id), "name": m.name} for m in merchants]
+        return Response(data)
